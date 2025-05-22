@@ -1,48 +1,96 @@
-function CurrentWeather({ current }) {
+function CurrentWeather({ weatherData, cityName }) {
+  if (!weatherData?.current || !weatherData?.daily) {
+    return <div className="app-container">Loading weather...</div>;
+  }
+
+  const current = weatherData.current;
+  const daily = weatherData.daily;
+  const currentTemp = current.temperature_2m;
+  const maxTemp = daily.temperature_2m_max[0];
+  const minTemp = daily.temperature_2m_min[0];
+  const windSpeed = current.wind_speed_10m;
+  const rain = daily.precipitation_probability_max[0];
+
+  //  time without AM or PM
+  const formatTime = (timeStr) => {
+    const time = new Date(timeStr);
+    let hours = time.getHours();
+    let minutes = time.getMinutes();
+
+    hours = hours < 10 ? '0' + hours : hours;
+    minutes = minutes < 10 ? '0' + minutes : minutes;
+    return `${hours}:${minutes}`;
+  };
+
+  // Get weather condition text
+  const getWeatherCondition = (code) => {
+    const conditions = {
+      0: 'Clear sky',
+      1: 'Mostly sunny',
+      2: 'Partly cloudy',
+      3: 'Overcast'
+    };
+    return conditions[code] || '';
+  };
+
   return (
-    <div className="weather-container">
-      <h1 className="location">Your Location</h1>
-      <div className="date">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</div>
-      
-      <div className="current-container">
-        <div className="current-weather">
-          <div className="current-weather-icon">
+    <div className="app-container">
+      <div className="weather-container">
+        <h1 className="location">{cityName}</h1>
+        <div className="date">{new Date().toLocaleDateString('en-US', {
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric'
+        })}
+        
+        </div>
+
+      <div className="container">
+        <div className="current-container">
+          <div className="current-weather">
+            <div className="current-weather-icon">
             <img src="/images/cloudy.png" alt="Weather" width="50" />
           </div>
-          <div className="current-weather-det">
-            <div className="current-temp">{current.temperature_2m}°</div>
-            <div className="weather-condition">
-              Wind: {current.wind_speed_10m} km/h
+            <div className="current-temp">{currentTemp}°</div>
+            <div className="weather-condition">{getWeatherCondition(current.weather_code)}</div>
+          </div>
+        </div>
+
+        <div className="weather-details">
+          <div className="detail-row">
+            <div className="detail-item">
+              <strong>{maxTemp}°</strong>
+              <span>High</span>
+            </div>
+            <div className="detail-item">
+              <strong>{windSpeed} mph</strong>
+              <span>Wind</span>
+            </div>
+            <div className="detail-item">
+              <strong>{formatTime(daily.sunrise[0])}</strong>
+              <span>Sunrise</span>
+            </div>
+          </div>
+          
+          <div className="detail-row">
+            <div className="detail-item">
+              <strong>{minTemp}°</strong>
+              <span>Low</span>
+            </div>
+            <div className="detail-item">
+              <strong>{rain}%</strong>
+              <span>Rain</span>
+            </div>
+            <div className="detail-item">
+              <strong>{formatTime(daily.sunset[0])}</strong>
+              <span>Sunset</span>
             </div>
           </div>
         </div>
-        
-        <div class="weather-details">
-        <table class="detail-table">
-          <tr>
-            <td class="detail-value">23°</td>
-            <td class="detail-value">7mph</td>
-            <td class="detail-value">05:27</td>
-          </tr>
-          <tr>
-            <td class="detail-label">High</td>
-            <td class="detail-label">Wind</td>
-            <td class="detail-label">Sunrise</td>
-          </tr>
-          <tr>
-            <td class="detail-value">14°</td>
-            <td class="detail-value">0%</td>
-            <td class="detail-value">20:57</td>
-        </tr>
-        <tr>
-          <td class="detail-label">Low</td>
-          <td class="detail-label">Rain</td>
-          <td class="detail-label">Sunset</td>
-        </tr>   
-      </table>
       </div>
     </div>
-  </div>
+    </div>
   );
 }
+
 export default CurrentWeather;

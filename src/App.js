@@ -2,61 +2,42 @@ import React, { useState, useEffect } from 'react';
 import CurrentWeather from './components/CurrentWeather';
 import HourlyForecast from './components/HourlyForecast';
 import DailyForecast from './components/DailyForecast';
-import { fetchWeatherData } from './Api/weatherApi';
+import { fetchWeatherData, getUserLocation, getCityName } from './Api/weatherApi';
 import './App.css';
-
-
-const getUserLocation = () => {
-  return new Promise((resolve, reject) => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          resolve({
-            lat: position.coords.latitude,
-            lon: position.coords.longitude
-          });
-        },
-        (error) => {
-          reject(error);
-        }
-      );
-    } else {
-      reject(new Error("Geolocation not supported"));
-    }
-  });
-};
 
 function App() {
   const [weatherData, setWeatherData] = useState(null);
+  const [cityName, setCityName] = useState("Detecting location...");
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const loadWeather = async () => {
+    const loadData = async () => {
       try {
-       
         const location = await getUserLocation();
-        
-
+        const city = await getCityName(location.lat, location.lon);
         const data = await fetchWeatherData(location.lat, location.lon);
+        
+        setCityName(city || "Your Location");
         setWeatherData(data);
       } catch (err) {
-        setError("Location access denied. Using default location.");
-        
-     
-        const defaultData = await fetchWeatherData(52.52, 13.41);
-        setWeatherData(defaultData);
+        setError("Using default location (Berlin)");
+        const berlinData = await fetchWeatherData(52.52, 13.41);
+        setWeatherData(berlinData);
+        setCityName("Berlin, Germany");
       }
     };
-    
-    loadWeather();
+
+    loadData();
   }, []);
 
-  if (!weatherData) return <div className="app-container">Loading...</div>;
+  if (!weatherData) {
+    return <div className="app-container">Loading...</div>;
+  }
 
   return (
     <div className="app-container">
       {error && <div className="error-message">{error}</div>}
-      <CurrentWeather current={weatherData.current} />
+      <CurrentWeather weatherData={weatherData} cityName={cityName} />
       <HourlyForecast hourly={weatherData.hourly} />
       <DailyForecast daily={weatherData.daily} />
     </div>

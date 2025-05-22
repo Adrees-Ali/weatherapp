@@ -1,14 +1,35 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
-function DailyForecast() {
-  const dailyData = [
-    { day: 'Tue', date: '30/7', icon: '🌤️', low: '10°', high: '21°', wind: '12mph', rain: '0%' },
-    { day: 'Wed', date: '31/7', icon: '🌤️', low: '9°', high: '18°', wind: '7mph', rain: '3%' },
-    { day: 'Thur', date: '1/8', icon: '🌤️', low: '7°', high: '15°', wind: '11mph', rain: '75%' },
-    { day: 'Fri', date: '2/8', icon: '🌤️', low: '10°', high: '21°', wind: '3mph', rain: '5%' },
-    { day: 'Sat', date: '30/7', icon: '🌤️', low: '12°', high: '24°', wind: '8mph', rain: '2%' },
-  ];
+function DailyForecast({ daily }) {
+  const [dailyData, setDailyData] = useState([]);
 
+  useEffect(() => {
+  if (!daily || !daily.time) return;
+
+  const days = daily.time.slice(0, 5).map((dateStr, i) => {
+    const date = new Date(dateStr);
+
+    const dayName = date.toLocaleDateString('en-US', { weekday: 'short' }); 
+    const day = date.getDate();   
+    const month = date.getMonth() + 1; // 4+1 = 5 like may
+    const formattedDate = `${day}/${month}`; 
+
+    return {
+      day: dayName,
+      date: formattedDate,
+      icon: '🌤️',
+      low: `${daily.temperature_2m_min[i]}°`,
+      high: `${daily.temperature_2m_max[i]}°`,
+      wind: `${daily.windspeed_10m_max[i]} mph`,
+      rain: `${daily.precipitation_probability_max[i]}%`
+    };
+  });
+
+  setDailyData(days);
+}, [daily]);
+
+
+  
   return (
     <div className="forecast">
       <div className="section-title">Next 5 days</div>
